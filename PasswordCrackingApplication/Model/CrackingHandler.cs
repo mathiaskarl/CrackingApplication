@@ -25,7 +25,7 @@ namespace PasswordCrackingApplication.Model
         public List<DictionarySet>  DictionarySets { get; private set; }                                = new List<DictionarySet>();
         public List<CrackingClient> CrackingClients { get; private set; }                               = new List<CrackingClient>();
 
-        private const int BaseSetSize = 5000;
+        private const int BaseSetSize = 50;
         private const int AverageTimeToCompleteSet = 60;
 
 

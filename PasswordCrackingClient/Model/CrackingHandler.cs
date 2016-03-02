@@ -15,6 +15,7 @@ namespace PasswordCrackingClient.Model
 {
     public class CrackingHandler : ProgressStateUpdated
     {
+        private readonly List<string> _specialCharAndMoreList = new List<string>();
         public List<UserAccountSet> UserAccountSets { get; set; }                           = new List<UserAccountSet>();
         public DictionarySetGroup DictionarySetGroup { get; set; }                          = new DictionarySetGroup();
 
@@ -22,6 +23,25 @@ namespace PasswordCrackingClient.Model
         public int CurrentCrackingIndex = 0;
 
         private readonly HashAlgorithm _messageDigest = new SHA1CryptoServiceProvider();
+
+        public CrackingHandler()
+        {
+            var list = new[] { "!", "#", "¤", "%", "&", "/", "(", ")", "=", "?", "´", "`", "|", "<", ">", "½", "@", "£", "$", "{", "[", "]", "}", "*", "-", "+", "_", ";", ":", ",", ".", "\\", " ", "ë", "é", "è", "ä", "ü", "á", "à", "ñ", "ö", "å", "æ", "ø", "ï", "í", "ì", "ÿ", "ý", "ó", "ò" };
+            foreach (string s in list)
+            {
+                _specialCharAndMoreList.Add(s);
+            }
+
+            for (int i = 0; i < 100; i++)
+            {
+                _specialCharAndMoreList.Add(i.ToString());
+            }
+
+            for (int i = 1900; i < DateTime.Now.Year; i++)
+            {
+                _specialCharAndMoreList.Add(i.ToString());
+            }
+        }
 
         public void AddDictionarySetGroup(DictionarySetGroup setGroup)
         {
@@ -73,7 +93,9 @@ namespace PasswordCrackingClient.Model
                             throw new Exception("ABORTED_CRACKING");
 
                         this.CurrentCrackingIndex = i;
-                        if (i%1000 == 1000 || i%1000 == 0)
+                        decimal temp = DictionarySetGroup.DictionarySets.Count/10;
+                        int roundedCount = (int)Math.Round(temp)*10;
+                        if (i % (roundedCount / 10) == 0)
                             Console.WriteLine("Checked: " + i + " - " + (int)((i * 100) / (double)DictionarySetGroup.DictionarySets.Count) + "%");
                         RunCrackingIterations(obj.Keyword);
                     }
@@ -94,6 +116,7 @@ namespace PasswordCrackingClient.Model
         private void RunCrackingIterations(string keyword, bool testMode = false)
         {
             InitiateCompare(keyword, testMode);
+            InitiateCompare(keyword + keyword, testMode);
 
             InitiateCompare(keyword.ToUpper(), testMode);
 
@@ -101,22 +124,86 @@ namespace PasswordCrackingClient.Model
 
             InitiateCompare(DataUtil.Reverse(keyword), testMode);
 
+            CheckKeywordForEachCharUppercase(keyword, testMode);
+            CheckKeywordForEachCharWithList(keyword, testMode);
+            CheckNumberInFrontAndAfterKeyword(keyword, testMode);
+            CheckKeywordCapitalizedFirstLastBoth(keyword, testMode);
+
+        }
+
+        private void CheckKeywordCapitalizedFirstLastBoth(string dictionaryEntry, bool testMode = false)
+        {
+            string possiblePasswordCapitalized = DataUtil.Capitalize(dictionaryEntry);
+            InitiateCompare(possiblePasswordCapitalized, testMode);
+
+            string possiblePasswordLastLetterCapitalized = DataUtil.CapitalizeLastLetter(dictionaryEntry);
+            InitiateCompare(possiblePasswordLastLetterCapitalized, testMode);
+
+            string possiblePasswordFirstAndLastCap = DataUtil.CapitalizeLastLetter(possiblePasswordCapitalized);
+            InitiateCompare(possiblePasswordFirstAndLastCap, testMode);
+        }
+
+        private void CheckNumberInFrontAndAfterKeyword(string dictionaryEntry, bool testMode = false)
+        {
             for (int i = 0; i < 100; i++)
             {
-                InitiateCompare(keyword + i, testMode);
-            }
-
-            for (int i = 0; i < 100; i++)
-            {
-                InitiateCompare(i + keyword, testMode);
-            }
-
-            for (int i = 0; i < 10; i++)
-            {
-                for (int j = 0; j < 10; j++)
+                for (int j = 0; j < 100; j++)
                 {
-                    InitiateCompare(i + keyword + j, testMode);
+                    string possiblePasswordStartEndDigit = i + dictionaryEntry + j;
+                    InitiateCompare(possiblePasswordStartEndDigit, testMode);
                 }
+            }
+
+            for (int i = 1900; i < DateTime.Now.Year; i++)
+            {
+                for (int j = 1900; j < DateTime.Now.Year; j++)
+                {
+                    String possiblePasswordStartEndDigit = i + dictionaryEntry + j;
+                    InitiateCompare(possiblePasswordStartEndDigit, testMode);
+                }
+            }
+        }
+
+        private void CheckKeywordForEachCharWithList(string dictionaryEntry, bool testMode = false)
+        {
+            foreach (string s in _specialCharAndMoreList)
+            {
+                for (int i = 0; i < dictionaryEntry.Length + 1; i++)
+                {
+                    string a = dictionaryEntry.Substring(0, i);
+                    string b = dictionaryEntry.Substring(i, dictionaryEntry.Length - a.Length);
+                    string possiblePassword = a + s + b;
+                    InitiateCompare(possiblePassword, testMode);
+                }
+            }
+        }
+
+        private void CheckKeywordForEachCharUppercase(string dictionaryEntry, bool testMode = false)
+        {
+            for (int i = 0; i < dictionaryEntry.Length; i++)
+            {
+                string a;
+                string b;
+                string c;
+
+                if (i == 0)
+                {
+                    a = "";
+                }
+                else
+                {
+                    a = dictionaryEntry.Substring(0, i);
+                }
+                b = dictionaryEntry.Substring(i, 1).ToUpper();
+                if ((i + 1 <= dictionaryEntry.Length))
+                {
+                    c = dictionaryEntry.Substring(i + 1, dictionaryEntry.Length - a.Length - b.Length);
+                }
+                else
+                {
+                    c = "";
+                }
+                InitiateCompare(a + b + c, testMode);
             }
         }
 

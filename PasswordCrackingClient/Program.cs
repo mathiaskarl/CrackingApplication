@@ -15,6 +15,7 @@ namespace PasswordCrackingClient
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Address to the host: ");
             var ip = Console.ReadLine();
             var crackingHandler = new CrackingHandler();
             var client = new Client(ip, 6789);

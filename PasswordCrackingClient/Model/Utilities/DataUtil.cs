@@ -56,5 +56,20 @@ namespace PasswordCrackingClient.Model.Utilities
         {
             return Convert.ToByte(ch);
         }
+
+        public static string CapitalizeLastLetter(string str)
+        {
+            if (str == null)
+            {
+                throw new ArgumentNullException("str");
+            }
+            if (str.Trim().Length == 0)
+            {
+                return str;
+            }
+            string lastLetterUppercase = str.Substring(str.Length - 1, 1).ToUpper();
+            string theRest = str.Substring(0, str.Length - 1);
+            return theRest + lastLetterUppercase;
+        }
     }
 }
