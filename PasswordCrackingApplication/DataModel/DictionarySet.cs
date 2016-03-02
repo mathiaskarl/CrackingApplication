@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using PasswordCrackingApplication.DataModel.Interfaces;
 
@@ -39,7 +40,8 @@ namespace PasswordCrackingApplication.DataModel
             if (String.IsNullOrWhiteSpace(keyword))
                 throw new ArgumentNullException();
 
-            this.Keyword = keyword;
+            if (Regex.IsMatch(keyword, "^[a-zA-Z0-9- ]*$"))
+                this.Keyword = keyword;
             this.Index = index;
         }
     }

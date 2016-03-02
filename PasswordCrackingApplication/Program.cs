@@ -18,7 +18,8 @@ namespace PasswordCrackingApplication
         static void Main(string[] args)
         {
             CustomTraceListener.AddCustomListener();
-            var crackingHandler = new CrackingHandler("passwords.txt", "webster-dictionary.txt");
+            string[] dictionaries = {"webster-dictionary.txt", "words-da"};
+            var crackingHandler = new CrackingHandler("passwords.txt", dictionaries);
             var server = new Server(null, 6789);
             new ServerController(crackingHandler, server);
         }

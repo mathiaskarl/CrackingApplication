@@ -20,19 +20,21 @@ namespace PasswordCrackingApplication.Model
     {
         public string PasswordFile { get; private set; }
         public string DictionaryFile { get; private set; }
+        public string DanishDictionaryFile { get; private set; }
         public List<UserAccountSet> UserAccountSets { get; private set; }                               = new List<UserAccountSet>(); 
         public List<UserAccountSet> UserAccountSetsResult { get; set; }                                 = new List<UserAccountSet>();
         public List<DictionarySet>  DictionarySets { get; private set; }                                = new List<DictionarySet>();
+        public List<DictionarySet> DanishDictionarySets { get; private set; }                           = new List<DictionarySet>();
         public List<CrackingClient> CrackingClients { get; private set; }                               = new List<CrackingClient>();
 
         private const int BaseSetSize = 50;
         private const int AverageTimeToCompleteSet = 60;
+        private string[] DictionaryFiles;
 
-
-        public CrackingHandler(string passwordFile, string dictionaryFile)
+        public CrackingHandler(string passwordFile, string[] dictionaryFiles)
         {
             this.PasswordFile = passwordFile;
-            this.DictionaryFile = dictionaryFile;
+            this.DictionaryFiles = dictionaryFiles;
 
             Initialize();
         }
@@ -42,8 +44,16 @@ namespace PasswordCrackingApplication.Model
             try
             {
                 UserAccountSets = FileHandler.FetchSets<UserAccountSet>(this.PasswordFile);
-                DictionarySets = FileHandler.FetchSets<DictionarySet>(this.DictionaryFile).OrderBy(x => x.Keyword).ToList();
-
+                var tempDictionarySets = new List<DictionarySet>();
+                foreach (var dictionary in DictionaryFiles)
+                    tempDictionarySets.AddRange(
+                        FileHandler.FetchSets<DictionarySet>(dictionary)
+                            .Where(x => !String.IsNullOrWhiteSpace(x.Keyword))
+                            .ToList());
+                DictionarySets =
+                    tempDictionarySets.GroupBy(x => x.Keyword).Select(x => x.First())
+                    .OrderBy(x => x.Keyword)
+                    .ToList();
             }
             catch (Exception ex)
             {
